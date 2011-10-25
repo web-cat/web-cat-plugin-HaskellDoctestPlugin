@@ -43,6 +43,10 @@ sub compileOnce
             my $errorLog = $driverPrefix;
             while (<DRIVER_IN>)
             {
+                if (m/module Main where/o)
+                {
+                    last;
+                }
                 $errorLog .= $_;
             }
             close(DRIVER_IN) || print STDERR "Error closing $driver: $!";
@@ -167,12 +171,12 @@ sub compileOnce
             $_ = <COMPILERLOG>;
         }
 
-        if ($compileCount >= $compileLimit)
+        if ($compileCount >= $compileLimit && $errors)
         {
             print FEEDBACK
                 "\nGiving up attempting to compile test driver after ",
                 $compileCount + 1,
-                "passes!\n";
+                " passes!\n";
         }
 
         close(COMPILERLOG) || print STDERR "Error closing $compilerOut: $!";
@@ -182,6 +186,15 @@ sub compileOnce
 
     # Generate new test driver
     {
+        for my $i (0 .. $#caseLines)
+        {
+            if ($caseLines[$i] ne "")
+            {
+                $caseLines[$i] =~ s/^    ,\s+/    /o;
+                last;
+            }
+        }
+
         open(DRIVER_OUT, ">$driver")
             || die "Cannot open $driver for writing: $!";
     	print DRIVER_OUT $driverPrefix;
@@ -196,13 +209,14 @@ sub compileOnce
     return $errors;
 }
 
-while (compileOnce() > 0 && $compileCount < $compileLimit)
+my $lastErrs = 0;
+while (($lastErrs = compileOnce()) > 0 && $compileCount < $compileLimit)
 {
     ++$compileCount;
 #    exit(0);
 }
 
-if ($compileCount < $compileLimit)
+if (!$lastErrs)
 {
     if ($warnLog ne "")
     {

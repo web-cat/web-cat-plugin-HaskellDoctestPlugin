@@ -219,7 +219,21 @@ instructor soln pat  = ${instructorSolutionPattern}
    </target>
 
 
-  <target name="compile.instructor.driver" depends="compile.student.driver">
+  <target name="force.instructor.driver.imports"
+    depends="compile.student.driver"
+    if="forceImports">
+    <exec executable="perl"
+           dir="${basedir}"
+           failonerror="true">
+      <arg value="${scriptHome}/forceImports.pl"/>
+      <arg value="${instructor.bin}/__driver.hs"/>
+      <arg value="${forceImports}"/>
+    </exec>
+  </target>
+
+
+  <target name="compile.instructor.driver"
+    depends="compile.student.driver,force.instructor.driver.imports">
     <apply executable="perl"
            dir="${basedir}"
            parallel="true"

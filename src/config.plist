@@ -3,7 +3,7 @@
     version.major    = 0;
     version.minor    = 1;
     version.revision = 0;
-    version.date     = 20110916;
+    version.date     = 20111017;
     requires         = ( PerlForPlugins );
     provider         = "Virginia Tech Computer Science";
     provider.url     = "http://web-cat.cs.vt.edu/updates";
@@ -33,6 +33,15 @@ set of instructor-provided tests (reference tests).";
   to use for checking student-written tests. If you select a directory, it
   should contain Haskell source files, all of which will be used. These
   should be ASCII \".hs\" only..";
+        },
+        {
+            property    = forceImports;
+            type        = shortText;
+            size        = 30;
+            name        = "Force Imports";
+            description =
+  "Just a hack!! Force student tests to import these module(s) only.  Provide
+  a single module name, or multiple modules separated by commas.";
         }
     );
     optionCategories = (

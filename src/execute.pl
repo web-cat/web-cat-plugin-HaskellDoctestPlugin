@@ -425,10 +425,7 @@ if ($timeout_status)
 sub filePat
 {
     my $path = shift || die "filePat: path required";
-    if ( $path !~ m,/,o )
-    {
-        $path =~ s,\\+,/,go;
-    }
+    $path =~ s,\\+,/,go;
     $path =~ s,//+,/,go;
     my $dosPath = $path;
     $dosPath =~ s,/,\\,go;
@@ -440,6 +437,9 @@ sub filePat
 
 my $workingDirPat = filePat($working_dir . "/");
 my $testDirPat = filePat($instrSrcPath . "/");
+my $studentDirPat = filePat($log_dir . "/sbin/");
+my $instructorDirPat = filePat($log_dir . "/ibin/");
+my $resultDirPat = filePat($log_dir . "/");
 my $reportCount = $cfg->getProperty('numReports', 0);
 
 
@@ -475,6 +475,9 @@ sub addReport
 
                 $line =~ s/$workingDirPat//g;
                 $line =~ s/$testDirPat//g;
+                $line =~ s/$studentDirPat//g;
+                $line =~ s/$instructorDirPat//g;
+                $line =~ s/$resultDirPat//g;
                 $line =~ s/\&/\&amp;/g;
                 $line =~ s/</\&lt;/g;
                 $line =~ s/>/\&gt;/g;
@@ -615,17 +618,130 @@ else
 
 
 #=============================================================================
-# generate HTML versions of any other source files
+# Gather coverage data from student source files
 #=============================================================================
 
-#my $beautifier = new Web_CAT::Beautifier;
-#$beautifier->beautifyCwd( $cfg, \@beautifierIgnoreFiles );
+my %codeMessages = ();
+
+sub collectMessages
+{
+    my $prefix = shift;
+    my $path   = shift;
+
+    if (! -e $path)
+    {
+        return;
+    }
+
+    if (-d $path)
+    {
+        for my $subpath (<$path/*>)
+        {
+            collectMessages($prefix, $subpath);
+        }
+    }
+    elsif ($path !~ m,hpc_index[^\./]*\.html,io)
+    {
+        my $fileName = $path;
+        $fileName =~ s,^\Q$prefix/\E,,;
+        $fileName =~ s,\.html$,,;
+        print "processing $fileName\n" if ($debug);
+
+    if (open(MARKUP, $path))
+    {
+        while (<MARKUP>)
+        {
+            # isolate the source line number
+            my $lineno = 0;
+            if (m,<span class="lineno">\s*([0-9]*)\s*</span>,io)
+            {
+                $lineno = $1;
+            }
+
+                # now look for a highlighted expression
+            if (m,<span class="(nottickedoff|tickonlytrue|tickonlyfalse)">\s*([^<\s][^<]*)\s*</span>,io)
+            {
+                my $matchType = $1;
+                my $phrase    = $2;
+
+                    if ($matchType eq "tickonlytrue" && $phrase eq "otherwise")
+                    {
+                        $matchType = undef;
+                        $phrase = undef;
+                    if (m,<span class="tickonlytrue">\s*otherwise\s*</span>.*<span class="(nottickedoff|tickedonlytrue|tickedonlyfalse)">\s*([^<\s][^<]*)\s*</span>,io)
+                        {
+                        my $matchType = $1;
+                        my $phrase    = $2;
+                        }
+                    }
+
+                if (defined $matchType)
+                {
+                    $phrase =~ s,\s+$,,o;
+                    my $msg =
+                        "Expression \"$phrase\" was never evaluated.";
+                    my $tag = "e";
+                    if ($matchType eq "tickonlytrue")
+                    {
+                        $msg = "Condition \"$phrase\" always evaluated "
+                            . "to True.";
+                        $tag = "t";
+                    }
+                    elsif ($matchType eq "tickonlyfalse")
+                    {
+                        $msg = "Condition \"$phrase\" always evaluated "
+                            . "to False.";
+                        $tag = "f";
+                    }
+                    $codeMessages{$fileName}{$lineno} = {
+                            category => 'coverage',
+                            coverage => $tag,
+                            message  => htmlEscape($msg)
+                            };
+            }
+            }
+        }
+        close(MARKUP);
+    }
+    else
+    {
+        print STDERR "error: unable to open $path for reading: $!\n";
+    }
+    }
+}
+
+
+collectMessages("$log_dir/scvghtml", "$log_dir/scvghtml");
+
+
+if ( $debug > 3 )
+{
+    foreach my $f (keys %codeMessages)
+    {
+        print "$f:\n";
+        foreach my $line (keys %{$codeMessages{$f}})
+        {
+            print "    line $line:\n";
+            foreach my $k (keys %{$codeMessages{$f}{$line}})
+            {
+                print "        $k => ", $codeMessages{$f}{$line}{$k}, "\n";
+            }
+        }
+    }
+}
+
+
+#=============================================================================
+# generate HTML versions of any other source files
+#=============================================================================
+$cfg->setProperty("numReports", $reportCount);
+my $beautifier = new Web_CAT::Beautifier;
+$beautifier->beautifyCwd($cfg, \@beautifierIgnoreFiles, {}, \%codeMessages);
 
 
 #=============================================================================
 # Scale to be out of range of $maxCorrectnessScore
 # $cfg->setProperty("score.correctness", $maxCorrectnessScore);
-$cfg->setProperty("numReports", $reportCount);
 $cfg->save();
 
 if ($debug)
