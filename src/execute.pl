@@ -46,21 +46,21 @@ my @beautifierIgnoreFiles = ('.o', '.hi', '.tix', '.mix', '.hpc');
 #     E.g., "/usr/local/tomcat5.5/temp/UOM/submitterWeb-CATName"
 
 our $propfile     = $ARGV[0];   # property file name
-our $cfg          = Config::Properties::Simple->new( file => $propfile );
+our $cfg          = Config::Properties::Simple->new(file => $propfile);
 
-our $localFiles   = $cfg->getProperty( 'localFiles', '' );
-our $log_dir      = $cfg->getProperty( 'resultDir'      );
-our $script_home  = $cfg->getProperty( 'scriptHome'     );
-our $working_dir  = $cfg->getProperty( 'workingDir'     );
+our $localFiles = $cfg->getProperty('localFiles', '');
+our $resultDir  = $cfg->getProperty('resultDir'     );
+our $pluginHome = $cfg->getProperty('pluginHome'    );
+our $workingDir = $cfg->getProperty('workingDir'    );
 
-our $timeout      = $cfg->getProperty( 'timeout', 30    );
+our $timeout    = $cfg->getProperty('timeout', 30   );
 # The values coming through don't match up with assignment settings.
 # E.g., "15" comes through as "430". So this is a 'temporary' patch.
 # And I can't access the timeoutInternalPadding, etc. from config.plist, so
 # have to guess as to the adjustment to undo the padding and multiplying done
 # by the subsystem..
-if ( $timeout >  100 ) { $timeout = ($timeout - 400) / 2; }
-if ( $timeout <  2 ) { $timeout = 15; }
+if ($timeout >  100) { $timeout = ($timeout - 400) / 2; }
+if ($timeout <  2)   { $timeout = 15; }
 
 #-------------------------------------------------------
 # Scoring Settings
@@ -69,37 +69,37 @@ if ( $timeout <  2 ) { $timeout = 15; }
 #   -- coverageMetric is Boolean for now. May mess with degree of coverage later.
 #   -- allStudentTestsMustPass has apparently had many types of input. Swiped
 #      the input tests from C++ tester.
-our $maxCorrectnessScore     = $cfg->getProperty( 'max.score.correctness', 0 );
-our $enableStudentTests      = $cfg->getProperty( 'enableStudentTests', 0 );
+our $maxCorrectnessScore     = $cfg->getProperty('max.score.correctness', 0);
+our $enableStudentTests      = $cfg->getProperty('enableStudentTests', 0);
 our $doStudentTests          =
-    ( $enableStudentTests      =~ m/^(true|on|yes|y|1)$/i );
-our $measureCodeCoverage     = $cfg->getProperty( 'coverageMetric', 0 );
+    ($enableStudentTests     =~ m/^(true|on|yes|y|1)$/i);
+our $measureCodeCoverage     = $cfg->getProperty('coverageMetric', 0);
 our $doMeasureCodeCoverage   =
-    ( $measureCodeCoverage     =~ m/^(true|on|yes|y|1)$/i );
-our $allStudentTestsMustPass = $cfg->getProperty( 'allStudentTestsMustPass', 0 );
+    ($measureCodeCoverage    =~ m/^(true|on|yes|y|1)$/i);
+our $allStudentTestsMustPass = $cfg->getProperty('allStudentTestsMustPass', 0);
     $allStudentTestsMustPass =
-    ( $allStudentTestsMustPass =~ m/^(true|on|yes|y|1)$/i );
+    ($allStudentTestsMustPass =~ m/^(true|on|yes|y|1)$/i);
 #   Keep directives in agreement.
     $doStudentTests = 1 if $doMeasureCodeCoverage || $allStudentTestsMustPass;
 
 #-------------------------------------------------------
 #   Feedback Settings
 #-------------------------------------------------------
-our $hintsLimit              = $cfg->getProperty( 'hintsLimit', 3 );
-our $showHints               = $cfg->getProperty( 'showHints', 0 );
+our $hintsLimit              = $cfg->getProperty('hintsLimit', 3);
+our $showHints               = $cfg->getProperty('showHints', 0);
     $showHints               =
-    ( $showHints             =~ m/^(true|on|yes|y|1)$/i );
+    ($showHints              =~ m/^(true|on|yes|y|1)$/i);
 # Remove the 4 "$showExtraFeedback" lines below after May, 2009
 # The $showExtraFeedback is temporarily a synonym for $showHints until
 # after the semester ends so as not to break deployed assignments.
-our $showExtraFeedback       = $cfg->getProperty( 'showExtraFeedback', 0 );
+our $showExtraFeedback       = $cfg->getProperty('showExtraFeedback', 0);
     $showExtraFeedback       =
-    ( $showExtraFeedback     =~ m/^(true|on|yes|y|1)$/i );
+    ($showExtraFeedback      =~ m/^(true|on|yes|y|1)$/i);
     $showHints = $showHints || $showExtraFeedback;
 
-our $hideHintsWithin         = $cfg->getProperty( 'hideHintsWithin', 0 );
-our $dueDateTimestamp        = $cfg->getProperty( 'dueDateTimestamp', 0 );
-our $submissionTimestamp     = $cfg->getProperty( 'submissionTimestamp', 0 );
+our $hideHintsWithin         = $cfg->getProperty('hideHintsWithin', 0);
+our $dueDateTimestamp        = $cfg->getProperty('dueDateTimestamp', 0);
+our $submissionTimestamp     = $cfg->getProperty('submissionTimestamp', 0);
 #   Adjust time from milliseconds to seconds
     $dueDateTimestamp    /= 1000;
     $submissionTimestamp /= 1000;
@@ -111,7 +111,8 @@ our $submissionTimestamp     = $cfg->getProperty( 'submissionTimestamp', 0 );
 #   to the effect that extra help would have been available if the student
 #   had submitted earlier.
 our $hintsBlackout   =
-    int ($submissionTimestamp + $hideHintsWithin * 3600 * 24 >= $dueDateTimestamp);
+    int ($submissionTimestamp + $hideHintsWithin * 3600 * 24
+    >= $dueDateTimestamp);
 #   Turn extra feedback off within extra feedback blackout period.
     $showHints       = $showHints && !$hintsBlackout;
 
@@ -120,9 +121,9 @@ our $hintsBlackout   =
 #-------------------------------------------------------
 #   -- None at present
 #   Script Developer Settings
-our $debug                   = $cfg->getProperty( 'debug', 0 );
+our $debug                   = $cfg->getProperty('debug', 0);
 
-our $NTprojdir               = $working_dir . "/";
+our $NTprojdir               = $workingDir . "/";
 
 #   Considering borrowing this from C++ grader, but not currently active.
 #our %status = (
@@ -133,44 +134,44 @@ our $NTprojdir               = $working_dir . "/";
 #    'compileMsgs'        => "",
 #    'compileErrs'        => 0,
 #    'feedback'           => undef,
-#        #new Web_CAT::FeedbackGenerator( $log_dir, 'feedback.html' ),
+#        #new Web_CAT::FeedbackGenerator( $resultDir, 'feedback.html' ),
 #    'instrFeedback'      => undef,
-#        #new Web_CAT::FeedbackGenerator( $log_dir, 'staffFeedback.html' )
+#        #new Web_CAT::FeedbackGenerator( $resultDir, 'staffFeedback.html' )
 #);
 
 #-------------------------------------------------------
 #   Local file location definitions within this script
 #-------------------------------------------------------
-if ( ! defined $log_dir )    { print "log_dir undefined"; }
+if (!defined $resultDir)      { print "log_dir undefined"; }
 our $script_log_relative      = "script.log";
-our $script_log               = File::Spec->join($log_dir, $script_log_relative);
-if ( ! defined $script_log ) { print "script_log undefined"; }
+our $script_log               = File::Spec->join($resultDir, $script_log_relative);
+if (!defined $script_log)     { print "script_log undefined"; }
 our $student_code_relative    = "student-code.txt";
-our $student_code             = File::Spec->join($log_dir, $student_code_relative);
+our $student_code             = File::Spec->join($resultDir, $student_code_relative);
 
 our $instr_output_relative    = "instructor-unittest-out.txt";
-our $instr_output             = File::Spec->join($log_dir, $instr_output_relative);
+our $instr_output             = File::Spec->join($resultDir, $instr_output_relative);
 our $instr_rpt_relative       = "instr-unittest-report.html";
-our $instr_rpt                = File::Spec->join($log_dir, $instr_rpt_relative);
+our $instr_rpt                = File::Spec->join($resultDir, $instr_rpt_relative);
 
 our $student_output_relative  = "student-unittest-out.txt";
-our $student_output           = File::Spec->join($log_dir, $student_output_relative);
+our $student_output           = File::Spec->join($resultDir, $student_output_relative);
 our $student_rpt_relative     = "student-unittest-report.html";
-our $student_rpt              = File::Spec->join($log_dir, $student_rpt_relative);
+our $student_rpt              = File::Spec->join($resultDir, $student_rpt_relative);
 
 # Will append a "-moduleName.txt" to each file. Doesn't exactly
 # follow approach of other report files, but seemed better this way.
 our $coverage_output_relative = "student-coverage";
-our $coverage_output          = File::Spec->join($log_dir, $coverage_output_relative);
+our $coverage_output          = File::Spec->join($resultDir, $coverage_output_relative);
 our $coverage_rpt_relative    = "student-coverage-report.html";
-our $coverage_rpt             = File::Spec->join($log_dir, $coverage_rpt_relative);
+our $coverage_rpt             = File::Spec->join($resultDir, $coverage_rpt_relative);
 our $covfileRelative          = "test.cov";
 
 our $timeout_log_relative     = "timeout_log.txt";
-our $timeout_log              = File::Spec->join($log_dir, 'timeout_log');
-our $debug_log                = File::Spec->join($log_dir, 'debug.txt');
+our $timeout_log              = File::Spec->join($resultDir, 'timeout_log');
+our $debug_log                = File::Spec->join($resultDir, 'debug.txt');
 our $testLogRelative          = "justTesting.log";
-our $testLog                  = File::Spec->join($log_dir, $testLogRelative);
+our $testLog                  = File::Spec->join($resultDir, $testLogRelative);
 
 sub platformPath
 {
@@ -187,7 +188,7 @@ sub platformPath
     return $path;
 }
 
-my $antLog              = platformPath("$log_dir/ant.log");
+my $antLog              = platformPath("$resultDir/ant.log");
 
 die "ANT_HOME environment variable is not set! (Should come from ANTForPlugins)"
     if !defined($ENV{ANT_HOME});
@@ -199,7 +200,7 @@ my $ANT = "ant";
 
 
 our $explain_rpt_relative     = "explanation_report.html";
-our $explain_rpt              = File::Spec->join($log_dir, $explain_rpt_relative);
+our $explain_rpt              = File::Spec->join($resultDir, $explain_rpt_relative);
 
 our $stdinInput               = File::Spec->devnull();
 
@@ -225,7 +226,7 @@ if (defined $haskellExtraPath && $haskellExtraPath ne "")
 #=============================================================================
 # Locate instructor unit test implementation
 #=============================================================================
-my $scriptData = $cfg->getProperty( 'scriptData', '.' );
+my $scriptData = $cfg->getProperty('scriptData', '.');
 
 $scriptData =~ s,/$,,;
 
@@ -273,16 +274,18 @@ my $instrSrcPath;
 #   Script Startup
 #=============================================================================
 #   Change to specified working directory and set up log directory
-chdir( $working_dir );
+chdir($workingDir);
 
 ## PATCH FOR INTERNET EXPLORER PATH NAME PROBLEM.
 ## Go through all files in working dir and rename if necessary.
-while (<*>) {
+while (<*>)
+{
     my $file = $_;
-    if ( $file =~ /^[A-Z]:\\.*\.hs$/ ) {
+    if ($file =~ /^[A-Z]:\\.*\.hs$/)
+    {
         my $newName = $file;
         $newName =~ tr/\\/\//;
-        $newName = basename( $newName );
+        $newName = basename($newName);
         print "rename MS-Windows file upload file name $file to $newName\n";
         rename $file, $newName || die "Error renaming $file to $newName\n";
     }
@@ -293,31 +296,31 @@ while (<*>) {
 {
     # Get a listing of all file/dir names, including those starting with
     # dot, then strip out . and ..
-    my @dirContents = grep(!/^(\.{1,2}|META-INF)$/, <* .*> );
+    my @dirContents = grep(!/^(\.{1,2}|META-INF)$/, <* .*>);
 
     # if this list contains only one entry that is a dir name != src, then
     # assume that the submission has been "wrapped" with an outter
     # dir that isn't actually part of the project structure.
-    if ( $#dirContents == 0 && -d $dirContents[0] && $dirContents[0] ne "src" )
+    if ($#dirContents == 0 && -d $dirContents[0] && $dirContents[0] ne "src")
     {
         # Strip non-alphanumeric symbols from dir name
         my $dir = $dirContents[0];
-        if ( $dir =~ s/[^a-zA-Z0-9_]//g )
+        if ($dir =~ s/[^a-zA-Z0-9_]//g)
         {
-            if ( $dir eq "" )
+            if ($dir eq "")
             {
                 $dir = "dir";
             }
-            rename( $dirContents[0], $dir );
+            rename($dirContents[0], $dir);
         }
-        $working_dir .= "/$dir";
-        chdir( $working_dir );
+        $workingDir .= "/$dir";
+        chdir($workingDir);
     }
 }
 
 if ($debug)
 {
-    print "working dir set to $working_dir\n";
+    print "working dir set to $workingDir\n";
 }
 
 
@@ -325,22 +328,22 @@ if ($debug)
 # Copy over input/output data files as necessary
 # localFiles
 {
-    my $localFiles = $cfg->getProperty( 'localFiles' );
-    if ( defined $localFiles && $localFiles ne "" )
+    my $localFiles = $cfg->getProperty('localFiles');
+    if (defined $localFiles && $localFiles ne "")
     {
-        my $lf = confirmExists( $scriptData, $localFiles );
+        my $lf = confirmExists($scriptData, $localFiles);
         print "localFiles = $lf\n" if $debug;
-        if ( -d $lf )
+        if (-d $lf)
         {
             print "localFiles is a directory\n" if $debug;
-            copyHere( $lf, $lf, \@beautifierIgnoreFiles );
+            copyHere($lf, $lf, \@beautifierIgnoreFiles );
         }
         else
         {
             print "localFiles is a single file\n" if $debug;
             my $base = $lf;
             $base =~ s,/[^/]*$,,;
-            copyHere( $lf, $base, \@beautifierIgnoreFiles );
+            copyHere($lf, $base, \@beautifierIgnoreFiles);
         }
     }
 }
@@ -348,53 +351,55 @@ if ($debug)
 
 #-----------------------------------------------
 # Generate a script warning
-sub adminLog {
+sub adminLog
+{
     print "script_log undefined" if ! defined $script_log;
-    open( SCRIPTLOG, ">>$script_log" ) ||
+    open(SCRIPTLOG, ">>$script_log") ||
         die "Cannot open file for output '$script_log': $!";
-    print SCRIPTLOG join( "\n", @_ ), "\n";
-    close( SCRIPTLOG );
+    print SCRIPTLOG join("\n", @_), "\n";
+    close(SCRIPTLOG);
 }
 
 sub studentLog
 {
-    open( SCRIPT_LOG, ">>$script_log" ) ||
+    open(SCRIPT_LOG, ">>$script_log") ||
     die "cannot open $script_log: $!";
     print SCRIPT_LOG @_;
-    close( SCRIPT_LOG );
+    close(SCRIPT_LOG);
 }
 
 #-----------------------------------------------
 # Prints out an official error report to screen where it might be
 # more helpful than saying "There has been an internal error", etc.
-sub reportError {
+sub reportError
+{
     my $rpt_absolute_path = shift;
     my $rpt_relative_path = shift;
     my $rpt_title         = shift;
     my $rpt_message       = shift;
 
     my $errorFeedbackGenerator =
-        new Web_CAT::FeedbackGenerator( $rpt_absolute_path );
+        new Web_CAT::FeedbackGenerator($rpt_absolute_path);
     $errorFeedbackGenerator->startFeedbackSection(
              $rpt_title,
              ++$expSectionId,
-             0 );
-    if( ! defined $rpt_message || $rpt_message eq "" )
+             0);
+    if(!defined $rpt_message || $rpt_message eq "")
     {
         # No message passed in, so grab the script log.
         # Don't know if this is good programming style, but about to 'slurp'
         # entire file.
         # Something really blew up, so printint everything in $script_log
         # to screen report.
-        open( SCRIPT_LOG, "$script_log" ) ||
+        open(SCRIPT_LOG, "$script_log") ||
             die "cannot open $script_log: $!";
         my $holdTerminator = $/;
         undef $/;
         $rpt_message = <SCRIPT_LOG>;
-        close( SCRIPT_LOG );
+        close(SCRIPT_LOG);
         $/ = $holdTerminator;
     }
-    $errorFeedbackGenerator->print( $rpt_message );
+    $errorFeedbackGenerator->print($rpt_message);
     $errorFeedbackGenerator->endFeedbackSection;
 
     # Close down this report
@@ -408,10 +413,10 @@ sub reportError {
 #=============================================================================
 
 $cfg->save();
-if ( $debug > 2 ) { $ANT .= " -d -v"; }
+if ($debug > 2) { $ANT .= " -d -v"; }
 my $cmdline = $Web_CAT::Utilities::SHELL
-    . "$ANT -f \"$script_home/build.xml\" -l \"$antLog\" "
-    . "-propertyfile \"$propfile\" \"-Dbasedir=$working_dir\" "
+    . "$ANT -f \"$pluginHome/build.xml\" -l \"$antLog\" "
+    . "-propertyfile \"$propfile\" \"-Dbasedir=$workingDir\" "
     . "> " . File::Spec->devnull . " 2>&1";
 
 print $cmdline, "\n" if ($debug);
@@ -435,11 +440,11 @@ sub filePat
 }
 
 
-my $workingDirPat = filePat($working_dir . "/");
+my $workingDirPat = filePat($workingDir . "/");
 my $testDirPat = filePat($instrSrcPath . "/");
-my $studentDirPat = filePat($log_dir . "/sbin/");
-my $instructorDirPat = filePat($log_dir . "/ibin/");
-my $resultDirPat = filePat($log_dir . "/");
+my $studentDirPat = filePat($resultDir . "/sbin/");
+my $instructorDirPat = filePat($resultDir . "/ibin/");
+my $resultDirPat = filePat($resultDir . "/");
 my $reportCount = $cfg->getProperty('numReports', 0);
 
 
@@ -458,7 +463,7 @@ sub addReport
         close(LOG);
         if ($#logLines >= 0)
         {
-            my $feedbackGenerator = new Web_CAT::FeedbackGenerator("$log_dir/$outfile");
+            my $feedbackGenerator = new Web_CAT::FeedbackGenerator("$resultDir/$outfile");
             $feedbackGenerator->startFeedbackSection($title, 1);
             $feedbackGenerator->print("<pre>\n");
             foreach my $line (@logLines)
@@ -496,26 +501,26 @@ sub addReport
     return @result;
 }
 
-addReport("$log_dir/sbin/compiler.log", "compiler.html", "Compiler Messages");
+addReport("$resultDir/sbin/compiler.log", "compiler.html", "Compiler Messages");
 addReport(
-    "$log_dir/sbin/bad-tests.log",
+    "$resultDir/sbin/bad-tests.log",
     "student-invalid-tests.html",
     "Some Test Cases Could Not Be Compiled");
 my ($sCases, $sTried, $sErrors, $sFails) = addReport(
-    "$log_dir/student-out.txt",
+    "$resultDir/student-out.txt",
     "student-out.html",
     "Program Correctness (Results from Your Tests on Your Code)");
 my $sSucceeded =  $sTried - $sErrors - $sFails;
 my $sPct = $sSucceeded / (($sCases > 0) ? $sCases : 1);
 $cfg->setProperty( "studentEval", "$sPct $sSucceeded $sCases");
 addReport(
-    "$log_dir/ibin/bad-tests.log",
+    "$resultDir/ibin/bad-tests.log",
     "ref-invalid-tests.html",
     "Some Test Cases Were Incompatible with the Reference Solution");
 if ($sSucceeded == $sCases && $sCases > 0)
 {
     my ($iCases, $iTried, $iErrors, $iFails) = addReport(
-        platformPath("$log_dir/instructor-out.txt"),
+        platformPath("$resultDir/instructor-out.txt"),
         "instructor-out.html",
         "Test Validity (Results from Your Tests on the Reference Solution)", 1);
     my $iSucceeded =  $iTried - $iErrors - $iFails;
@@ -551,7 +556,7 @@ sub extractCvgFrom
     return ($c, $p);
 }
 
-my $cvgFile = "$log_dir/instructor-cvg.xml";
+my $cvgFile = "$resultDir/instructor-cvg.xml";
 if (-f $cvgFile && $sSucceeded == $sCases && $sCases > 0)
 {
     my $possible = 0;
@@ -697,8 +702,8 @@ sub collectMessages
                             category => 'coverage',
                             coverage => $tag,
                             message  => htmlEscape($msg)
-                            };
-            }
+                        };
+                }
             }
         }
         close(MARKUP);
@@ -711,10 +716,10 @@ sub collectMessages
 }
 
 
-collectMessages("$log_dir/scvghtml", "$log_dir/scvghtml");
+collectMessages("$resultDir/scvghtml", "$resultDir/scvghtml");
 
 
-if ( $debug > 3 )
+if ($debug > 3)
 {
     foreach my $f (keys %codeMessages)
     {

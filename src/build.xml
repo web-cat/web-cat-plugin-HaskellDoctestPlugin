@@ -216,6 +216,13 @@ instructor soln pat  = ${instructorSolutionPattern}
       <arg value="driver${.exe}.tix"/>
     </exec>
     <delete failonerror="false" dir=".hpc"/>
+    <delete failonerror="false">
+      <fileset dir="${student.bin}">
+        <include name="**/*.hi"/>
+        <include name="**/*.o"/>
+        <include name="**/.hpc/"/>
+      </fileset>
+    </delete>
    </target>
 
 
